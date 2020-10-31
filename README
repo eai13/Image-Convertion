@@ -1,0 +1,9 @@
+Training code
+The library provides functions:
+	-for reading .bmp images, .yuv images and .yuv video files
+	-for conversion from .bmp to .yuv
+	-for adding .yuv image to .yuv video file
+
+This is just a code for training for now.
+But it may further be turned into library for working with images and video files.
+Just need some free time for that :)
