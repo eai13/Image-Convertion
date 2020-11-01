@@ -35,6 +35,8 @@ struct BMP_Image{
 		// Constructors
 		BMP_Image(char const * filename);
 		BMP_Image(BMP_Image const & image);
+		// Assignment
+		BMP_Image const & operator = (BMP_Image const & image);
 		//Conversion to gray
 		BMP_Image ToGray(void);
 		// Getters for R, G and B arrays

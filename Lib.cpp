@@ -62,6 +62,39 @@ BMP_Image::BMP_Image(BMP_Image const & image) {
 	}
 }
 
+BMP_Image const & BMP_Image::operator = (BMP_Image const & image){
+	if (&image == this){
+		return *this;
+	}
+	delete [] this->R[0];
+	delete [] this->G[0];
+	delete [] this->B[0];
+	delete [] this->R;
+	delete [] this->G;
+	delete [] this->B;
+	this->height = image.height;
+	this->width = image.width;
+	this->R = new unsigned char * [this->height];
+	this->G = new unsigned char * [this->height];
+	this->B = new unsigned char * [this->height];
+	this->R[0] = new unsigned char [this->height * this->width];
+	this->G[0] = new unsigned char [this->height * this->width];
+	this->B[0] = new unsigned char [this->height * this->width];
+	for (size_t i = 1; i < this->height; i++){
+		this->R[i] = this->R[i - 1] + this->width;
+		this->G[i] = this->G[i - 1] + this->width;
+		this->B[i] = this->B[i - 1] + this->width;
+	}
+	for (size_t i = 0; i < this->height; i++){
+		for (size_t j = 0; j < this->width; j++){
+			this->R[i][j] = image.R[i][j];
+			this->G[i][j] = image.G[i][j];
+			this->B[i][j] = image.B[i][j];
+		}
+	}
+	return *this;
+}
+
 unsigned char BMP_Image::GetR(int i, int j) const {
 	if ((i < this->height) && (j < this->width)){
 		return this->R[i][j];
