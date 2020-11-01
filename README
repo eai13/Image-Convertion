@@ -5,6 +5,7 @@ The library provides functions:
 	-for adding .yuv image to .yuv video file
 	-for conversion from RGB to GRAY
 	-for saving .bmp file
+	-for conversion from RGB to HSV
 
 This is just a code for training for now.
 But it may further be turned into library for working with images and video files.

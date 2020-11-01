@@ -1,5 +1,6 @@
 #include "Lib.h"
 
+// BMP Image
 BMP_Image::BMP_Image(char const * filename){
 	// Reading bmp image file
 	FILE * bmp = fopen(filename, "rb");
@@ -147,6 +148,35 @@ BMP_Image BMP_Image::ToGray(void){
 	return output;
 }
 
+BMP_Image BMP_Image::ToHSV(void){
+	BMP_Image output = *this;
+	int fMax = 0;
+	int fMin = 0;
+	unsigned char delta;
+	unsigned char channels[3];
+	for (size_t i = 0; i < output.height; i++){
+		for (size_t j = 0; j < output.width; j++){
+			channels[0] = this->R[i][j];
+			channels[1] = this->G[i][j];
+			channels[2] = this->B[i][j];
+			fMax = std::max_element(channels, channels + 3) - channels;
+			fMin = std::min_element(channels, channels + 3) - channels;
+			delta = channels[fMax] - channels[fMin];
+			// Hue
+			if (delta == 0) output.R[i][j] = 0;
+			else if (fMax == 0) output.R[i][j] = (((channels[1] - channels[2]) / delta) % 6) / 6 * 255;
+			else if (fMax == 1) output.R[i][j] = ((channels[2] - channels[0]) / delta + 2) / 6 * 255;
+			else if (fMax == 2) output.R[i][j] = ((channels[0] - channels[1]) / delta + 4) / 6 * 255;
+			// Saturation
+			if (channels[fMax] == 0) output.G[i][j] = 0;
+			else output.G[i][j] = delta / channels[fMax];
+			// Value
+			output.B[i][j] = channels[fMax];
+		}
+	}
+	return output;
+}
+
 void BMP_Image::Save(char const * filename){
 	FILE * image = fopen(filename, "wb");
 	fwrite("BM", sizeof(char), 2, image);
@@ -197,6 +227,7 @@ BMP_Image::~BMP_Image(){
 	delete [] this->B;
 }
 
+// YUV Image
 YUV_Image::YUV_Image(int width, int height) : width(width), height(height), halfWidth(width % 2 == 0 ? width / 2 : width / 2 + 1), halfHeight(height % 2 == 0 ? height / 2 : height / 2 + 1) { 
 	// Allocating memory
 	this->Y = new unsigned char * [this->height];
@@ -343,6 +374,8 @@ void YUV_Image::SaveFile(char const * filename) const {
 	// Closing the yuv image file
 	fclose(yuv);
 }
+
+// YUV Video
 
 YUV_Video::YUV_Video(char const * filename, int width, int height) : filename(filename), width(width), height(height), halfWidth(width % 2 == 0 ? width / 2 : width / 2 + 1), halfHeight(height % 2 == 0 ? height / 2 : height / 2 + 1){
 	// Reading yuv video file

@@ -11,6 +11,7 @@
 #include <vector>
 #include <thread>
 #include <functional>
+#include <algorithm>
 
 // Coefficients for bmp->yuv transform
 const double RED_BMP2YUV = 0.299;
@@ -37,8 +38,9 @@ struct BMP_Image{
 		BMP_Image(BMP_Image const & image);
 		// Assignment
 		BMP_Image const & operator = (BMP_Image const & image);
-		//Conversion to gray
+		//Conversions
 		BMP_Image ToGray(void);
+		BMP_Image ToHSV(void);
 		// Getters for R, G and B arrays
 		unsigned char GetR(int i, int j) const;
 		unsigned char GetG(int i, int j) const;
