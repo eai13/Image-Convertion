@@ -39,6 +39,29 @@ BMP_Image::BMP_Image(char const * filename){
 	fclose(bmp);
 }
 
+BMP_Image::BMP_Image(BMP_Image const & image) {
+	this->height = image.height;
+	this->width = image.width;
+	this->R = new unsigned char * [this->height];
+	this->G = new unsigned char * [this->height];
+	this->B = new unsigned char * [this->height];
+	this->R[0] = new unsigned char [this->height * this->width];
+	this->G[0] = new unsigned char [this->height * this->width];
+	this->B[0] = new unsigned char [this->height * this->width];
+	for (size_t i = 1; i < this->height; i++){
+		this->R[i] = this->R[i - 1] + this->width;
+		this->G[i] = this->G[i - 1] + this->width;
+		this->B[i] = this->B[i - 1] + this->width;
+	}
+	for (size_t i = 0; i < this->height; i++){
+		for (size_t j = 0; j < this->width; j++){
+			this->R[i][j] = image.R[i][j];
+			this->G[i][j] = image.G[i][j];
+			this->B[i][j] = image.B[i][j];
+		}
+	}
+}
+
 unsigned char BMP_Image::GetR(int i, int j) const {
 	if ((i < this->height) && (j < this->width)){
 		return this->R[i][j];
@@ -75,6 +98,60 @@ int BMP_Image::GetHeight() const {
 
 int BMP_Image::GetWidth() const {
 	return this->width;
+}
+
+BMP_Image BMP_Image::ToGray(void){
+	BMP_Image output = *this;
+	unsigned char grayValue;
+	for (size_t i = 0; i < output.height; i++){
+		for (size_t j = 0; j < output.width; j++){
+			grayValue = this->R[i][j] * RED_BMP2GRAY + this->G[i][j] * GREEN_BMP2GRAY + this->B[i][j] * BLUE_BMP2GRAY;
+			output.R[i][j] = grayValue;
+			output.G[i][j] = grayValue;
+			output.B[i][j] = grayValue;
+		}
+	}
+	return output;
+}
+
+void BMP_Image::Save(char const * filename){
+	FILE * image = fopen(filename, "wb");
+	fwrite("BM", sizeof(char), 2, image);
+	int additionalBytesAmount = this->width % 4;
+	int channelsAmount = 3;
+	unsigned int headerSize = 54;
+	unsigned int DIBheaderSize = 40;
+	unsigned int fileSize = headerSize + (this->width * channelsAmount + additionalBytesAmount) * this->height;
+	fwrite(&fileSize, sizeof(unsigned int), 1, image);
+	unsigned int reserve = 0;
+	fwrite(&reserve, sizeof(unsigned int), 1, image);
+	fwrite(&headerSize, sizeof(unsigned int), 1, image);
+	fwrite(&DIBheaderSize, sizeof(unsigned int), 1, image);
+	unsigned int wid = (unsigned int)this->width;
+	unsigned int hei = (unsigned int)this->height;
+	fwrite(&wid, sizeof(unsigned int), 1, image);
+	fwrite(&hei, sizeof(unsigned int), 1, image);
+	unsigned short planes = 1;
+	fwrite(&planes, sizeof(unsigned short), 1, image);
+	unsigned short bitsPerPixel = 24;
+	fwrite(&bitsPerPixel, sizeof(unsigned short), 1, image);
+	fwrite(&reserve, sizeof(unsigned int), 1, image);
+	unsigned int matrixSize = fileSize - 54;
+	fwrite(&matrixSize, sizeof(unsigned int), 1, image);
+	unsigned int resolution = 2835;
+	fwrite(&resolution, sizeof(unsigned int), 1, image);
+	fwrite(&resolution, sizeof(unsigned int), 1, image);
+	fwrite(&reserve, sizeof(unsigned int), 1, image);
+	fwrite(&reserve, sizeof(unsigned int), 1, image);
+	for (int i = this->height - 1; i >= 0; i--){
+		for (size_t j = 0; j < this->width; j++){
+			fwrite(&this->R[i][j], sizeof(unsigned char), 1, image);
+			fwrite(&this->G[i][j], sizeof(unsigned char), 1, image);
+			fwrite(&this->B[i][j], sizeof(unsigned char), 1, image);
+		}
+		fwrite(&reserve, sizeof(unsigned char), additionalBytesAmount, image);
+	}
+	fclose(image);
 }
 
 BMP_Image::~BMP_Image(){
@@ -188,7 +265,7 @@ YUV_Image & YUV_Image::operator = (BMP_Image const & bmp){
 		for (size_t i = n * rowsInThread; i < (n + 1) * rowsInThread; i++){
 			for (size_t j = 0; j < this->width; j++){
 				if (bmp.GetR(i, j) != -1){
-					this->Y[i][j] = (unsigned char)(((double)(bmp.GetR(i, j))) * Kr + ((double)(bmp.GetG(i, j))) * Kg + ((double)(bmp.GetB(i, j))) * Kb);
+					this->Y[i][j] = (unsigned char)(((double)(bmp.GetR(i, j))) * RED_BMP2YUV + ((double)(bmp.GetG(i, j))) * GREEN_BMP2YUV + ((double)(bmp.GetB(i, j))) * BLUE_BMP2YUV);
 					if ((i % 2 == 0) && (j % 2 == 0)){
 						this->U[i / 2][j / 2] = (unsigned char)((bmp.GetB(i, j) - this->Y[i][j]) / 2) + 128;
 						this->V[i / 2][j / 2] = (unsigned char)((bmp.GetR(i, j) - this->Y[i][j]) / 2) + 128;
@@ -209,7 +286,7 @@ YUV_Image & YUV_Image::operator = (BMP_Image const & bmp){
 	// The last thread
 	for (size_t i = rowsInThread * (coresAmount - 1); i < this->height; i++){
 		for (size_t j = 0; j < this->width; j++){
-			this->Y[i][j] = (unsigned char)(((double)(bmp.GetR(i, j))) * Kr + ((double)(bmp.GetG(i, j))) * Kg + ((double)(bmp.GetB(i, j))) * Kb);
+			this->Y[i][j] = (unsigned char)(((double)(bmp.GetR(i, j))) * RED_BMP2YUV + ((double)(bmp.GetG(i, j))) * GREEN_BMP2YUV + ((double)(bmp.GetB(i, j))) * BLUE_BMP2YUV);
 			if ((i % 2 == 0) && (j % 2 == 0)){
 				this->U[i / 2][j / 2] = (unsigned char)((bmp.GetB(i, j) - this->Y[i][j]) / 2) + 128;
 				this->V[i / 2][j / 2] = (unsigned char)((bmp.GetR(i, j) - this->Y[i][j]) / 2) + 128;

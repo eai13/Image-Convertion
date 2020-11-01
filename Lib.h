@@ -1,6 +1,10 @@
 #ifndef TASK_LIB
 #define TASK_LIB
 
+#define RED 0
+#define GRN 1
+#define BLU 2
+
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -9,9 +13,14 @@
 #include <functional>
 
 // Coefficients for bmp->yuv transform
-const double Kr = 0.299;
-const double Kg = 0.587;
-const double Kb = 0.114;
+const double RED_BMP2YUV = 0.299;
+const double GREEN_BMP2YUV = 0.587;
+const double BLUE_BMP2YUV = 0.114;
+
+// Coefficients for bmp->gray transform
+const double RED_BMP2GRAY = 0.299;
+const double GREEN_BMP2GRAY = 0.587;
+const double BLUE_BMP2GRAY = 0.114;
 
 struct BMP_Image;
 struct YUV_Image;
@@ -23,8 +32,11 @@ void addImage(YUV_Video & yuv_video, YUV_Image const & yuv_image, char const * n
 // bmp image class
 struct BMP_Image{
 	public:
-		// Constructor
+		// Constructors
 		BMP_Image(char const * filename);
+		BMP_Image(BMP_Image const & image);
+		//Conversion to gray
+		BMP_Image ToGray(void);
 		// Getters for R, G and B arrays
 		unsigned char GetR(int i, int j) const;
 		unsigned char GetG(int i, int j) const;
@@ -32,6 +44,8 @@ struct BMP_Image{
 		// Getters for height and width
 		int GetHeight() const;
 		int GetWidth() const;
+		// Saving function
+		void Save(char const * filename);
 		// Destructor
 		~BMP_Image();
 	private:
