@@ -174,8 +174,57 @@ BMP_Image BMP_Image::ToHSV(void){
 			output.B[i][j] = channels[fMax];
 		}
 	}
-	std::cout << (int)output.R[0][0] << " " << (int)output.G[0][0] << " " << (int)output.B[0][0] << std::endl;
-	std::cout << (int)this->R[0][0] << " " << (int)this->G[0][0] << " " << (int)this->B[0][0] << std::endl;
+	return output;
+}
+
+BMP_Image BMP_Image::ToRGB(void){
+	BMP_Image output = *this;
+	double C, X, m;
+	double Rt, Gt, Bt;
+	double H, S, V;
+	for (size_t i = 0; i < output.height; i++){
+		for (size_t j = 0; j < output.width; j++){
+			H = (double)(this->R[i][j]) / 255 * 360;
+			S = (double)(this->G[i][j]) / 255;
+			V = (double)(this->B[i][j]) / 255;
+			C = S * V;
+			X = C * (1 - abs(std::fmod(H / 60, 2) - 1));
+			m = V - C;
+			if (H > 300){
+				Rt = C;
+				Gt = 0;
+				Bt = X;
+			}
+			else if (H > 240){
+				Rt = X;
+				Gt = 0;
+				Bt = C;
+			}
+			else if (H > 180){
+				Rt = 0;
+				Gt = X;
+				Bt = C;
+			}
+			else if (H > 120){
+				Rt = 0;
+				Gt = C;
+				Bt = X;
+			}
+			else if (H > 60){
+				Rt = X;
+				Gt = C;
+				Bt = 0;
+			}
+			else if (H >= 0){
+				Rt = C;
+				Gt = X;
+				Bt = 0;
+			}
+			output.R[i][j] = (Bt + m) * 255;
+			output.G[i][j] = (Gt + m) * 255;
+			output.B[i][j] = (Rt + m) * 255;
+		}
+	}
 	return output;
 }
 

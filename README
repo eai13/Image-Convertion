@@ -1,11 +1,11 @@
 Training code
-The library provides functions:
-	-for reading .bmp images, .yuv images and .yuv video files
-	-for conversion from .bmp to .yuv
-	-for adding .yuv image to .yuv video file
-	-for conversion from RGB to GRAY
-	-for saving .bmp file
-	-for conversion from RGB to HSV
+The library provides:
+	-Reading .bmp images, .yuv images and .yuv video files
+	-Addition of .yuv image to .yuv video file
+	-Conversion from .BMP to .YUV
+	-Conversion RGB -> GRAY
+	-Conversion RGB <-> HSV
+	-Saving .YUV, .BMP images and .YUV videos
 
 This is just a code for training for now.
 But it may further be turned into library for working with images and video files.

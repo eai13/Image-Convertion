@@ -42,6 +42,7 @@ struct BMP_Image{
 		//Conversions
 		BMP_Image ToGray(void);
 		BMP_Image ToHSV(void);
+		BMP_Image ToRGB(void);
 		// Getters for R, G and B arrays
 		unsigned char GetR(int i, int j) const;
 		unsigned char GetG(int i, int j) const;
