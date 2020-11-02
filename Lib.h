@@ -43,6 +43,8 @@ struct BMP_Image{
 		BMP_Image ToGray(void);
 		BMP_Image ToHSV(void);
 		BMP_Image ToRGB(void);
+		// Gamma Equalizer
+		BMP_Image GammaEqualizer(int chNum, double gamma);
 		// Getters for R, G and B arrays
 		unsigned char GetR(int i, int j) const;
 		unsigned char GetG(int i, int j) const;

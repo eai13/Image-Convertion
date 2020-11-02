@@ -220,10 +220,37 @@ BMP_Image BMP_Image::ToRGB(void){
 				Gt = X;
 				Bt = 0;
 			}
-			output.R[i][j] = (Bt + m) * 255;
+			output.R[i][j] = (Rt + m) * 255;
 			output.G[i][j] = (Gt + m) * 255;
-			output.B[i][j] = (Rt + m) * 255;
+			output.B[i][j] = (Bt + m) * 255;
 		}
+	}
+	return output;
+}
+
+BMP_Image BMP_Image::GammaEqualizer(int chNum, double gamma){
+	BMP_Image output = *this;
+	unsigned char * arr;
+	switch(chNum){
+		case 0:
+			arr = output.R[0];
+			break;
+		case 1:
+			arr = output.G[0];
+			break;
+		case 2:
+			arr = output.B[0];
+			break;
+		default:
+			arr = output.R[0];
+			break;
+	};
+	double Max = arr[std::max_element(arr, arr + output.width * output.height) - arr];
+	double Min = arr[std::min_element(arr, arr + output.width * output.height) - arr];
+	std::cout << Min << " " << Max << std::endl;
+	for (size_t i = 0; i < output.width * output.height; i++){
+		double current = arr[i];
+		arr[i] = Max * std::pow((current - Min) / (Max - Min), gamma) + Min;
 	}
 	return output;
 }
@@ -259,9 +286,9 @@ void BMP_Image::Save(char const * filename){
 	fwrite(&reserve, sizeof(unsigned int), 1, image);
 	for (int i = this->height - 1; i >= 0; i--){
 		for (size_t j = 0; j < this->width; j++){
-			fwrite(&this->R[i][j], sizeof(unsigned char), 1, image);
-			fwrite(&this->G[i][j], sizeof(unsigned char), 1, image);
 			fwrite(&this->B[i][j], sizeof(unsigned char), 1, image);
+			fwrite(&this->G[i][j], sizeof(unsigned char), 1, image);
+			fwrite(&this->R[i][j], sizeof(unsigned char), 1, image);
 		}
 		fwrite(&reserve, sizeof(unsigned char), additionalBytesAmount, image);
 	}
@@ -427,7 +454,6 @@ void YUV_Image::SaveFile(char const * filename) const {
 }
 
 // YUV Video
-
 YUV_Video::YUV_Video(char const * filename, int width, int height) : filename(filename), width(width), height(height), halfWidth(width % 2 == 0 ? width / 2 : width / 2 + 1), halfHeight(height % 2 == 0 ? height / 2 : height / 2 + 1){
 	// Reading yuv video file
 	FILE * yuvVideo = fopen(filename, "rb");
