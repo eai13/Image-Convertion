@@ -12,6 +12,7 @@
 #include <thread>
 #include <functional>
 #include <algorithm>
+#include <cmath>
 
 // Coefficients for bmp->yuv transform
 const double RED_BMP2YUV = 0.299;

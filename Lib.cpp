@@ -164,16 +164,18 @@ BMP_Image BMP_Image::ToHSV(void){
 			delta = channels[fMax] - channels[fMin];
 			// Hue
 			if (delta == 0) output.R[i][j] = 0;
-			else if (fMax == 0) output.R[i][j] = (((channels[1] - channels[2]) / delta) % 6) / 6 * 255;
-			else if (fMax == 1) output.R[i][j] = ((channels[2] - channels[0]) / delta + 2) / 6 * 255;
-			else if (fMax == 2) output.R[i][j] = ((channels[0] - channels[1]) / delta + 4) / 6 * 255;
+			else if (fMax == 0) output.R[i][j] = std::fmod(((double)(channels[1] - channels[2]) / (double)(delta)), 6) * ((double)(255) / (double)(6));
+			else if (fMax == 1) output.R[i][j] = ((double)(channels[2] - channels[0]) / (double)(delta) + 2) * ((double)(255) / (double)(6));
+			else if (fMax == 2) output.R[i][j] = ((double)(channels[0] - channels[1]) / (double)(delta) + 4) * ((double)(255) / (double)(6));
 			// Saturation
 			if (channels[fMax] == 0) output.G[i][j] = 0;
-			else output.G[i][j] = delta / channels[fMax];
+			else output.G[i][j] = ((double)delta / (double)channels[fMax]) * (double)(255);
 			// Value
 			output.B[i][j] = channels[fMax];
 		}
 	}
+	std::cout << (int)output.R[0][0] << " " << (int)output.G[0][0] << " " << (int)output.B[0][0] << std::endl;
+	std::cout << (int)this->R[0][0] << " " << (int)this->G[0][0] << " " << (int)this->B[0][0] << std::endl;
 	return output;
 }
 
