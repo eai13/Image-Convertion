@@ -184,11 +184,11 @@ BMP_Image BMP_Image::ToRGB(void){
 	double H, S, V;
 	for (size_t i = 0; i < output.height; i++){
 		for (size_t j = 0; j < output.width; j++){
-			H = (double)(this->R[i][j]) / 255 * 360;
-			S = (double)(this->G[i][j]) / 255;
-			V = (double)(this->B[i][j]) / 255;
+			H = (double)(this->R[i][j]) / (double)255 * (double)360;
+			S = (double)(this->G[i][j]) / (double)255;
+			V = (double)(this->B[i][j]) / (double)255;
 			C = S * V;
-			X = C * (1 - abs(std::fmod(H / 60, 2) - 1));
+			X = C * (1 - abs(std::fmod(H / (double)60, 2) - 1));
 			m = V - C;
 			if (H > 300){
 				Rt = C;
@@ -220,37 +220,27 @@ BMP_Image BMP_Image::ToRGB(void){
 				Gt = X;
 				Bt = 0;
 			}
-			output.R[i][j] = (Rt + m) * 255;
-			output.G[i][j] = (Gt + m) * 255;
-			output.B[i][j] = (Bt + m) * 255;
+			output.R[i][j] = ((Rt + m) * 255 <= 255) ? (((Rt + m) * 255 >= 0) ? (Rt + m) * 255 : 0) : 255;
+			output.G[i][j] = ((Gt + m) * 255 <= 255) ? (((Gt + m) * 255 >= 0) ? (Gt + m) * 255 : 0) : 255;
+			output.B[i][j] = ((Bt + m) * 255 <= 255) ? (((Bt + m) * 255 >= 0) ? (Bt + m) * 255 : 0) : 255;//(Bt + m) * 255;
 		}
 	}
 	return output;
 }
 
-BMP_Image BMP_Image::GammaEqualizer(int chNum, double gamma){
+BMP_Image BMP_Image::GammaEqualizer(double gamma){
 	BMP_Image output = *this;
-	unsigned char * arr;
-	switch(chNum){
-		case 0:
-			arr = output.R[0];
-			break;
-		case 1:
-			arr = output.G[0];
-			break;
-		case 2:
-			arr = output.B[0];
-			break;
-		default:
-			arr = output.R[0];
-			break;
-	};
-	double Max = arr[std::max_element(arr, arr + output.width * output.height) - arr];
-	double Min = arr[std::min_element(arr, arr + output.width * output.height) - arr];
-	std::cout << Min << " " << Max << std::endl;
-	for (size_t i = 0; i < output.width * output.height; i++){
-		double current = arr[i];
-		arr[i] = Max * std::pow((current - Min) / (Max - Min), gamma) + Min;
+	unsigned char * arr[3];
+	arr[0] = output.R[0];
+	arr[1] = output.G[0];
+	arr[2] = output.B[0];
+	for (int i = 0; i < output.width * output.height; i++){
+		double current = double(arr[0][i]) / 255;
+		arr[0][i] = pow(current, gamma) * 255;
+		current = double(arr[1][i]) / 255;
+		arr[1][i] = pow(current, gamma) * 255;
+		current = double(arr[2][i]) / 255;
+		arr[2][i] = pow(current, gamma) * 255;
 	}
 	return output;
 }

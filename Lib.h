@@ -52,7 +52,7 @@ struct BMP_Image{
 		BMP_Image ToHSV(void);
 		BMP_Image ToRGB(void);
 		// Operations on Images
-		BMP_Image GammaEqualizer(int chNum, double gamma);
+		BMP_Image GammaEqualizer(double gamma);
 		BMP_Image ThresBin(std::array<unsigned char, 3> low, std::array<unsigned char, 3> high);
 		BMP_Image Erosion(int structure);
 		BMP_Image Dilation(int structure);
