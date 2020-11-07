@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <array>
 #include <thread>
 #include <functional>
 #include <algorithm>
@@ -31,6 +32,13 @@ struct YUV_Video;
 // Overloading operator for adding yuv image to yuv video
 void addImage(YUV_Video & yuv_video, YUV_Image const & yuv_image, char const * newFileName);
 
+struct Dot{
+	Dot(int x, int y) : x(x), y(y) {}
+	Dot() {}
+	int x;
+	int y;
+};
+
 // bmp image class
 struct BMP_Image{
 	public:
@@ -43,8 +51,17 @@ struct BMP_Image{
 		BMP_Image ToGray(void);
 		BMP_Image ToHSV(void);
 		BMP_Image ToRGB(void);
-		// Gamma Equalizer
+		// Operations on Images
 		BMP_Image GammaEqualizer(int chNum, double gamma);
+		BMP_Image ThresBin(std::array<unsigned char, 3> low, std::array<unsigned char, 3> high);
+		BMP_Image Erosion(int structure);
+		BMP_Image Dilation(int structure);
+		BMP_Image Opening(int erosStruct, int dilStruct);
+		BMP_Image Closing(int erosStruct, int dilStruct);
+		// Geometric Figures
+		BMP_Image Square(Dot center, int halfWidth, int halfHeight, int thickness);
+		BMP_Image Point(Dot center, int thickness);
+		BMP_Image Line(Dot dot1, Dot dot2, int thickness);
 		// Getters for R, G and B arrays
 		unsigned char GetR(int i, int j) const;
 		unsigned char GetG(int i, int j) const;

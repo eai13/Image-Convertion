@@ -6,6 +6,10 @@ The library provides:
 	-Conversion RGB -> GRAY
 	-Conversion RGB <-> HSV
 	-Saving .YUV, .BMP images and .YUV videos
+	-Threshold binarization
+	-Gamma correction
+	-Erosion, Dilation, Opening, Closing
+	-Drawing Squares, Dots and Lines
 
 This is just a code for training for now.
 But it may further be turned into library for working with images and video files.

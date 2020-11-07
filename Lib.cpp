@@ -255,6 +255,161 @@ BMP_Image BMP_Image::GammaEqualizer(int chNum, double gamma){
 	return output;
 }
 
+BMP_Image BMP_Image::ThresBin(std::array<unsigned char, 3> low, std::array<unsigned char, 3> high){
+	BMP_Image output = *this;
+	for (size_t i = 0; i < output.height; i++){
+		for (size_t j = 0; j < output.width; j++){
+			if ((output.R[i][j] >= low[0]) && (output.R[i][j] <= high[0]) &&
+				(output.G[i][j] >= low[1]) && (output.G[i][j] <= high[1]) &&
+				(output.B[i][j] >= low[2]) && (output.B[i][j] <= high[2])){
+				output.R[i][j] = 255;
+				output.G[i][j] = 255;
+				output.B[i][j] = 255;
+			}
+			else{
+				output.R[i][j] = 0;
+				output.G[i][j] = 0;
+				output.B[i][j] = 0;
+			}
+		}
+	}
+	return output;
+}
+
+BMP_Image BMP_Image::Erosion(int structure){
+	BMP_Image output = *this;
+	for (int i = 0; i < this->height; i++){
+		for (int j = 0; j < this->width; j++){
+			for (int k = -structure / 2; k <= structure / 2; k++){
+				for (int l = -structure / 2; l <= structure / 2; l++){
+					if ((k + i >= 0) && (k + i < this->height) && (l + j >= 0) && (l + j < this->width)){
+						if (this->R[k + i][l + j] == 0){
+							output.R[i][j] = 0;
+							output.G[i][j] = 0;
+							output.B[i][j] = 0;
+							k = structure / 2 + 1;
+							l = structure / 2 + 1;
+						}
+					}						
+				}
+			}
+		}
+	}
+	return output;
+}
+
+BMP_Image BMP_Image::Dilation(int structure){
+	BMP_Image output = *this;
+	for (int i = 0; i < this->height; i++){
+		for (int j = 0; j < this->width; j++){
+			if (this->R[i][j] == 255){
+				for (int k = -structure / 2; k <= structure / 2; k++){
+					for (int l = -structure / 2; l <= structure / 2; l++){
+						if ((k + i >= 0) && (k + i < this->height) && (l + j >= 0) && (l + j < this->width)){
+							output.R[k + i][l + j] = 255;
+							output.G[k + i][l + j] = 255;
+							output.B[k + i][l + j] = 255;
+						}						
+					}
+				}
+			}
+		}
+	}
+	return output;
+}
+
+BMP_Image BMP_Image::Opening(int erosStruct, int dilStruct){
+	BMP_Image output = this->Erosion(erosStruct);
+	output = output.Dilation(dilStruct);
+	return output;
+}
+
+BMP_Image BMP_Image::Closing(int erosStruct, int dilStruct){
+	BMP_Image output = this->Dilation(dilStruct);
+	output = output.Erosion(erosStruct);
+	return output;
+}
+
+BMP_Image BMP_Image::Square(Dot center, int halfWidth, int halfHeight, int thickness){
+	BMP_Image output = *this;
+	if ((center.x < 0) || (center.x >= this->width) || (center.y < 0) || (center.y >= this->height)){
+		std::cout << "Check the center dot, it is not in the image" << std::endl;
+		return *this;
+	}
+	else{
+		Dot dot1((center.x - halfWidth < 0) ? 0 : center.x - halfWidth, (center.y - halfHeight < 0) ? 0 : center.y - halfHeight);
+		Dot dot2((center.x - halfWidth < 0) ? 0 : center.x - halfWidth, (center.y + halfHeight >= this->height) ? this->height - 1 : center.y + halfHeight);
+		Dot dot3((center.x + halfWidth >= this->height) ? this->height - 1 : center.x + halfWidth, (center.y + halfHeight >= this->height) ? this->height - 1 : center.y + halfHeight);
+		Dot dot4((center.x + halfWidth >= this->height) ? this->height - 1 : center.x + halfWidth, (center.y - halfHeight < 0) ? 0 : center.y - halfHeight);
+		output = output.Line(dot1, dot2, thickness);
+		output = output.Line(dot2, dot3, thickness);
+		output = output.Line(dot3, dot4, thickness);
+		output = output.Line(dot4, dot1, thickness);
+	}
+	return output;
+}
+
+BMP_Image BMP_Image::Point(Dot center, int thickness){
+	BMP_Image output = *this;
+	if ((center.x >= this->width) && (center.x < 0) && (center.y >= this->height) && (center.y < 0)){
+		std::cout << "Check the center dot, it is not in the image" << std::endl;
+		return *this;
+	}
+	else{
+		for (int i = -thickness / 2; i < thickness / 2; i++){
+			for (int j = -thickness / 2; j < thickness / 2; j++){
+				if ((center.x + i >= 0) && (center.x + i < this->width) && (center.y >= 0) && (center.y < this->height)){
+					output.R[center.y + j][center.x + i] = 255;
+					output.G[center.y + j][center.x + i] = 0;
+					output.B[center.y + j][center.x + i] = 0;
+				}
+			}
+		}
+	}
+	return output;
+}
+
+BMP_Image BMP_Image::Line(Dot dot1, Dot dot2, int thickness){
+	BMP_Image output = *this;
+	if ((dot1.x < 0) || (dot1.x >= this->width) || (dot1.y < 0) || (dot1.y >= this->height) ||
+		(dot2.x < 0) || (dot2.x >= this->width) || (dot2.y < 0) || (dot2.y >= this->height)){
+			std::cout << "Check the dots, they are not in the image" << std::endl;
+			return *this;
+	}
+	else{
+		double dX = dot2.x - dot1.x;
+		double dY = dot2.y - dot1.y;
+		double gainX, gainY;
+		if (abs(dX) >= abs(dY)) {
+			gainY = dY / abs(dX);
+			gainX = dX / abs(dX);
+			for (int i = 0; i < abs(dX); i++){
+				for (int j = -thickness / 2; j < thickness / 2; j++){
+					if ((dot1.y + (int)(gainY * (double)i) + j < this->height) && (dot1.y + (int)(gainY * (double)i) + j >= 0)){
+						output.R[dot1.y + (int)(gainY * (double)i) + j][dot1.x + (int)(gainX * (double)i)] = 255;
+						output.G[dot1.y + (int)(gainY * (double)i) + j][dot1.x + (int)(gainX * (double)i)] = 0;
+						output.B[dot1.y + (int)(gainY * (double)i) + j][dot1.x + (int)(gainX * (double)i)] = 0;
+					}
+				}
+			}
+		}
+		else {
+			gainX = dX / abs(dY);
+			gainY = dY / abs(dY);
+			for (int i = 0; i < abs(dY); i++){
+				for (int j = -thickness / 2; j < thickness / 2; j++){
+					if ((dot1.x + (int)(gainX * (double)i) + j < this->width) && (dot1.x + (int)(gainX * (double)i) + j >= 0)){
+						output.R[dot1.y + (int)(gainY * (double)i)][dot1.x + (int)(gainX * (double)i) + j] = 255;
+						output.G[dot1.y + (int)(gainY * (double)i)][dot1.x + (int)(gainX * (double)i) + j] = 0;
+						output.B[dot1.y + (int)(gainY * (double)i)][dot1.x + (int)(gainX * (double)i) + j] = 0;
+					}
+				}
+			}
+		}
+	}
+	return output;
+}
+
 void BMP_Image::Save(char const * filename){
 	FILE * image = fopen(filename, "wb");
 	fwrite("BM", sizeof(char), 2, image);
